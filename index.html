@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Country Hangman - Primary Edition</title>
+    <title>Country Hangman</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Andika&display=swap" rel="stylesheet">
     <style>
@@ -14,6 +14,7 @@
         html, body { 
             height: 100%; width: 100%; margin: 0; padding: 0; 
             overflow: hidden; background-color: #162a22;
+            position: fixed; /* Prevents bounce and scroll */
         }
 
         body {
@@ -21,49 +22,52 @@
             color: var(--chalk);
             font-family: 'Andika', sans-serif;
             display: flex; flex-direction: column; align-items: center;
-            touch-action: none;
         }
 
         #game-container { 
-            width: 100%; max-width: 500px; height: 100vh;
+            width: 100%; max-width: 500px; height: 100dvh;
             display: flex; flex-direction: column; align-items: center;
             justify-content: space-between; padding: 10px;
         }
 
         .header { 
             display: flex; justify-content: space-between; width: 100%; 
-            padding: 5px 0; border-bottom: 2px solid rgba(255,255,255,0.2); 
+            height: 5vh; align-items: center;
+            border-bottom: 2px solid rgba(255,255,255,0.2); 
             font-size: 0.9rem; flex-shrink: 0;
         }
         
+        #canvas-wrap {
+            height: 30vh; width: 100%; display: flex; justify-content: center; align-items: center;
+        }
+
         canvas { 
             background: var(--board); border: 4px solid #5d4037; border-radius: 8px; 
-            height: 25vh; max-height: 200px; width: auto; aspect-ratio: 5/6;
-            margin: 10px 0; flex-shrink: 0;
+            height: 100%; width: auto; aspect-ratio: 5/6;
         }
 
         .word-display { 
+            height: 12vh; width: 100%;
             font-size: clamp(1.4rem, 6vw, 2.2rem); letter-spacing: 4px; 
-            margin: 10px 0; min-height: 3rem; text-transform: uppercase; 
-            font-weight: bold; display: flex; justify-content: center; flex-wrap: wrap;
+            text-transform: uppercase; font-weight: bold; 
+            display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
         }
 
         .keyboard { 
-            display: grid; grid-template-columns: repeat(7, 1fr); 
-            gap: 6px; width: 100%; padding-bottom: env(safe-area-inset-bottom);
-            flex-shrink: 0;
+            height: 45vh; display: grid; grid-template-columns: repeat(7, 1fr); 
+            gap: 5px; width: 100%; padding-bottom: env(safe-area-inset-bottom);
         }
 
         .key { 
             background: rgba(255,255,255,0.1); border: 1.5px solid var(--chalk); 
-            color: var(--chalk); aspect-ratio: 1/1; font-size: 1.2rem; 
+            color: var(--chalk); width: 100%; height: 100%; font-size: 1.2rem; 
             cursor: pointer; border-radius: 8px; text-transform: uppercase;
             font-family: 'Andika', sans-serif; display: flex; align-items: center; justify-content: center;
         }
 
         .key:disabled { opacity: 0.15; }
-        .key.correct { background: #27ae60; border-color: #27ae60; }
-        .key.wrong { background: #c0392b; border-color: #c0392b; }
+        .key.correct { background: #27ae60 !important; border-color: #27ae60; opacity: 1 !important; }
+        .key.wrong { background: #c0392b !important; border-color: #c0392b; opacity: 1 !important; }
 
         #menu-screen, #ui-overlay { 
             position: fixed; inset: 0; background: var(--board); z-index: 9999; 
@@ -80,8 +84,8 @@
 <body>
 
     <div id="menu-screen">
-        <h1 style="font-size: 3rem; margin: 0; color: #f1c40f; text-transform: uppercase;">Hangman</h1>
-        <h3 style="margin: 5px 0; text-transform: uppercase;">Country Edition / גרסת המדינות</h3>
+        <h1 style="font-size: 3rem; margin: 0; color: #f1c40f; text-transform: uppercase;">HANGMAN</h1>
+        <h3 style="margin: 5px 0; text-transform: uppercase;">COUNTRY EDITION / גרסת המדינות</h3>
         <button class="lvl-btn" onclick="startLevel(1)">LEVEL 1 / שלב 1</button>
         <button class="lvl-btn" onclick="startLevel(2)">LEVEL 2 / שלב 2</button>
         <button class="lvl-btn" onclick="startLevel(3)">LEVEL 3 / שלב 3</button>
@@ -90,11 +94,13 @@
 
     <div id="game-container" style="display:none;">
         <div class="header">
-            <button onclick="location.reload()" style="background:none; border:none; color:white; font-family: 'Andika';">⬅ MENU</button>
+            <button onclick="location.reload()" style="background:none; border:none; color:white; font-family: 'Andika'; font-size: 1rem;">⬅ MENU</button>
             <div>ROUND: <span id="round-num">1</span>/8</div>
             <div>SCORE: <span id="score">0</span></div>
         </div>
-        <canvas id="hangman" width="200" height="240"></canvas>
+        <div id="canvas-wrap">
+            <canvas id="hangman" width="200" height="240"></canvas>
+        </div>
         <div class="word-display" id="word-slots"></div>
         <div id="keyboard" class="keyboard"></div>
     </div>
