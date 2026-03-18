@@ -14,7 +14,7 @@
         html, body { 
             height: 100%; width: 100%; margin: 0; padding: 0; 
             overflow: hidden; background-color: #162a22;
-            position: fixed; /* Prevents bounce and scroll */
+            position: fixed;
         }
 
         body {
@@ -32,13 +32,15 @@
 
         .header { 
             display: flex; justify-content: space-between; width: 100%; 
-            height: 5vh; align-items: center;
+            height: 6vh; align-items: center;
             border-bottom: 2px solid rgba(255,255,255,0.2); 
-            font-size: 0.9rem; flex-shrink: 0;
+            font-size: 0.8rem; flex-shrink: 0;
         }
+
+        .header-item { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
         
         #canvas-wrap {
-            height: 30vh; width: 100%; display: flex; justify-content: center; align-items: center;
+            height: 28vh; width: 100%; display: flex; justify-content: center; align-items: center;
         }
 
         canvas { 
@@ -94,9 +96,9 @@
 
     <div id="game-container" style="display:none;">
         <div class="header">
-            <button onclick="location.reload()" style="background:none; border:none; color:white; font-family: 'Andika'; font-size: 1rem;">⬅ MENU</button>
-            <div>ROUND: <span id="round-num">1</span>/8</div>
-            <div>SCORE: <span id="score">0</span></div>
+            <button onclick="location.reload()" style="background:none; border:none; color:white; font-family: 'Andika'; font-size: 0.8rem; text-align: left;">MENU<br>תפריט</button>
+            <div class="header-item">ROUND / שלב<br><span id="round-num">1</span>/8</div>
+            <div class="header-item">SCORE / ניקוד<br><span id="score">0</span></div>
         </div>
         <div id="canvas-wrap">
             <canvas id="hangman" width="200" height="240"></canvas>
@@ -127,7 +129,7 @@
 
         function speak(text) {
             window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
+            const msg = new SpeechSynthesisUtterance(text.toLowerCase()); // Lowercase avoids "capital" audio
             msg.lang = 'en-US'; msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
         }
@@ -197,7 +199,7 @@
                     <div style="color:white;">
                         <h2 style="text-transform:uppercase;">GAME FINISHED! / המשחק נגמר!</h2>
                         <h1 style="font-size:5rem; margin: 20px 0; color: #f1c40f;">${score}/8</h1>
-                        <button class="btn-next" onclick="location.reload()">BACK TO MENU</button>
+                        <button class="btn-next" onclick="location.reload()">BACK TO MENU / חזרה לתפריט</button>
                     </div>`;
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             }
