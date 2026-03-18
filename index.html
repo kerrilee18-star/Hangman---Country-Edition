@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chalkboard Hangman - Country Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --chalk: #f5f5f5; --board: #1e3a2f; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: #162a22;
+            background-image: url('https://www.transparenttextures.com/patterns/chalkboard.png');
+            color: var(--chalk);
+            font-family: 'Comic Sans MS', 'Verdana', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0; padding: 10px; touch-action: manipulation; overflow-x: hidden;
+        }
+        #game-container { width: 100%; max-width: 500px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .header { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 5px; font-size: 0.9rem; }
+        canvas { filter: blur(0.4px) drop-shadow(0px 0px 1px white); border: 5px solid #5d4037; background: var(--board); border-radius: 4px; max-width: 100%; height: auto; width: 200px; }
+        .word-display { font-size: 1.8rem; letter-spacing: 6px; margin: 15px 0; min-height: 2.5rem; text-transform: uppercase; font-weight: bold; word-wrap: break-word; }
+        .keyboard { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; width: 100%; max-width: 450px; }
+        .key { background: rgba(255,255,255,0.1); border: 1.5px solid var(--chalk); color: var(--chalk); padding: 12px 0; font-size: 1.1rem; cursor: pointer; border-radius: 6px; text-transform: uppercase; transition: background 0.2s; }
+        .key:disabled { opacity: 0.2; cursor: default; }
+        .key.correct { background: #27ae60; border-color: #27ae60; }
+        .key.wrong { background: #c0392b; border-color: #c0392b; }
+        #menu-screen, #ui-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--board); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; padding: 20px; text-align: center; }
+        #ui-overlay { background: rgba(15, 30, 24, 0.98); }
+        #menu-screen { display: flex; }
+        .lvl-btn { display: block; width: 240px; padding: 15px; margin: 8px; background: transparent; border: 2px solid white; color: white; font-size: 1.3rem; cursor: pointer; border-radius: 12px; }
+        .instructions { font-size: 0.9rem; max-width: 350px; margin: 15px 0; line-height: 1.4; color: #bdc3c7; }
+        .audio-icon-btn { background: #f39c12; border: none; border-radius: 50%; width: 55px; height: 55px; cursor: pointer; color: white; font-size: 22px; margin: 10px 0; }
+        .btn-next { background: #fff; color: #000; border: none; padding: 12px 30px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen">
+        <h1 style="font-size: 2.5rem; margin: 0;">Hangman</h1>
+        <h3 style="color: #f1c40f; margin: 10px 0;">Country Edition / גרסת מדינות</h3>
+        <div class="instructions">
+            <p><strong>English:</strong> Guess the letters to find the hidden country!</p>
+            <p><strong>עברית:</strong> נחשו את האותיות כדי לגלות את המדינה!</p>
+        </div>
+        <button class="lvl-btn" onclick="startLevel(1)">Level 1 / שלב 1</button>
+        <button class="lvl-btn" onclick="startLevel(2)">Level 2 / שלב 2</button>
+        <button class="lvl-btn" onclick="startLevel(3)">Level 3 / שלב 3</button>
+        <button class="lvl-btn" onclick="startLevel(4)">Level 4 / שלב 4</button>
+    </div>
+
+    <div id="game-container" style="display:none;">
+        <div class="header">
+            <button onclick="location.reload()" style="background:none; border:none; color:white; cursor:pointer; font-size:0.9rem;">⬅ Menu / תפריט</button>
+            <div>Word / מילה: <span id="round-num">1</span>/8</div>
+            <div>Score / ניקוד: <span id="score">0</span></div>
+        </div>
+        <canvas id="hangman" width="220" height="260"></canvas>
+        <div class="word-display" id="word-slots"></div>
+        <div id="keyboard" class="keyboard"></div>
+    </div>
+
+    <div id="ui-overlay">
+        <div id="result-content" style="text-align:center; width: 100%;">
+            <div id="round-result">
+                <h2 id="res-title"></h2>
+                <h1 id="res-word" style="color: #f1c40f; text-transform: uppercase; margin: 10px 0;"></h1>
+                <h2 id="res-trans" style="color: #ecf0f1; margin: 5px 0;"></h2>
+                <button class="audio-icon-btn" onclick="playWordAudio()">🔊</button><br>
+                <button class="btn-next" onclick="nextRound()">Next / הבא</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const allLevels = {
+            1: [{en:"Argentina", he:"ארגנטינה"}, {en:"Australia", he:"אוסטרליה"}, {en:"Brazil", he:"ברזיל"}, {en:"Canada", he:"קנדה"}, {en:"Colombia", he:"קולומביה"}, {en:"Mexico", he:"מקסיקו"}, {en:"Panama", he:"פנמה"}, {en:"America", he:"ארה״ב"}],
+            2: [{en:"Italy", he:"איטליה"}, {en:"Belgium", he:"בלגיה"}, {en:"Japan", he:"יפן"}, {en:"Russia", he:"רוסיה"}, {en:"Ukraine", he:"אוקראינה"}, {en:"Ethiopia", he:"אתיופיה"}, {en:"England", he:"אנגליה"}, {en:"Germany", he:"גרמניה"}],
+            3: [{en:"South Africa", he:"דרום אפריקה"}, {en:"Hungary", he:"הונגריה"}, {en:"Poland", he:"פולין"}, {en:"Norway", he:"נורווגיה"}, {en:"Thailand", he:"תאילנד"}, {en:"Sweden", he:"שבדיה"}, {en:"China", he:"סין"}, {en:"Ireland", he:"אירלנד"}],
+            4: [{en:"Egypt", he:"מצרים"}, {en:"Greece", he:"יוון"}, {en:"Cyprus", he:"קפריסין"}, {en:"France", he:"צרפת"}, {en:"India", he:"הודו"}, {en:"Switzerland", he:"שוויץ"}, {en:"Netherlands", he:"הולנד"}, {en:"Lithuania", he:"ליטא"}]
+        };
+
+        let currentWords = [], currentRound = 0, score = 0, mistakes = 0, guessedLetters = [], currentWord = "", canPlay = true;
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US'; msg.rate = 0.8;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function startLevel(num) {
+            currentWords = allLevels[num];
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            initGame();
+        }
+
+        function initGame() {
+            currentWord = currentWords[currentRound].en.toLowerCase();
+            guessedLetters = []; mistakes = 0; canPlay = true;
+            document.getElementById('round-num').innerText = currentRound + 1;
+            document.getElementById('ui-overlay').style.display = 'none';
+            drawGallows(); renderWord(); renderKeyboard();
+        }
+
+        function renderWord() {
+            const display = currentWord.split('').map(letter => {
+                if (letter === " ") return "&nbsp;&nbsp;";
+                return guessedLetters.includes(letter) ? letter : "_";
+            }).join(' ');
+            document.getElementById('word-slots').innerHTML = display;
+        }
+
+        function renderKeyboard() {
+            const kb = document.getElementById('keyboard'); kb.innerHTML = '';
+            "abcdefghijklmnopqrstuvwxyz".split('').forEach(l => {
+                const btn = document.createElement('button');
+                btn.className = 'key'; btn.innerText = l;
+                btn.onclick = (e) => {
+                    if (!canPlay) return;
+                    speak(l); btn.disabled = true;
+                    if (currentWord.includes(l)) {
+                        btn.classList.add('correct'); guessedLetters.push(l); renderWord();
+                        if (currentWord.replace(/\s/g, '').split('').every(char => guessedLetters.includes(char))) {
+                            score++; document.getElementById('score').innerText = score; showResult("Great!", "כל הכבוד!");
+                        }
+                    } else {
+                        btn.classList.add('wrong'); mistakes++; drawMan();
+                        if (mistakes >= 13) showResult("Answer:", "התשובה היא:");
+                    }
+                };
+                kb.appendChild(btn);
+            });
+        }
+
+        function showResult(title, sub) {
+            canPlay = false;
+            document.getElementById('ui-overlay').style.display = 'flex';
+            document.getElementById('res-title').innerText = title + " " + sub;
+            document.getElementById('res-word').innerText = currentWord;
+            document.getElementById('res-trans').innerText = currentWords[currentRound].he;
+            setTimeout(() => speak(currentWord), 400);
+        }
+
+        function playWordAudio() { speak(currentWord); }
+
+        function nextRound() {
+            currentRound++;
+            if (currentRound < 8) {
+                initGame();
+            } else {
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('ui-overlay').style.display = 'flex';
+                document.getElementById('result-content').innerHTML = `
+                    <div style="color:white; padding: 20px;">
+                        <h2 style="font-size:2rem;">Final Score / ניקוד סופי</h2>
+                        <h1 style="font-size:5rem; margin: 20px 0; color: #f1c40f;">${score}/8</h1>
+                        <button class="btn-next" style="font-size: 1.2rem; padding: 15px 40px;" onclick="location.reload()">Back to Menu / חזרה לתפריט</button>
+                    </div>`;
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        const canvas = document.getElementById('hangman');
+        const ctx = canvas.getContext('2d');
+        function drawGallows() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(20, 240); ctx.lineTo(100, 240); ctx.moveTo(40, 240); ctx.lineTo(40, 20); ctx.moveTo(40, 20); ctx.lineTo(140, 20); ctx.moveTo(140, 20); ctx.lineTo(140, 50); ctx.stroke();
+        }
+        function drawMan() {
+            ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.beginPath();
+            switch(mistakes) {
+                case 1: ctx.arc(140, 70, 20, 0, Math.PI * 2); break;
+                case 2: ctx.moveTo(140, 90); ctx.lineTo(140, 160); break;
+                case 3: ctx.moveTo(140, 110); ctx.lineTo(110, 140); break;
+                case 4: ctx.moveTo(140, 110); ctx.lineTo(170, 140); break;
+                case 5: ctx.moveTo(140, 160); ctx.lineTo(115, 210); break;
+                case 6: ctx.moveTo(140, 160); ctx.lineTo(165, 210); break;
+                case 7: ctx.moveTo(133, 65); ctx.lineTo(135, 65); break;
+                case 8: ctx.moveTo(145, 65); ctx.lineTo(147, 65); break;
+                case 9: ctx.moveTo(140, 72); ctx.lineTo(140, 76); break;
+                case 10: ctx.arc(140, 80, 5, 0, Math.PI); break;
+                case 11: ctx.beginPath(); ctx.arc(118, 70, 4, 0, Math.PI * 2); ctx.stroke(); break;
+                case 12: ctx.beginPath(); ctx.arc(162, 70, 4, 0, Math.PI * 2); ctx.stroke(); break;
+                case 13: 
+                    ctx.moveTo(132, 62); ctx.lineTo(138, 68); ctx.moveTo(138, 62); ctx.lineTo(132, 68);
+                    ctx.moveTo(142, 62); ctx.lineTo(148, 68); ctx.moveTo(148, 62); ctx.lineTo(142, 68);
+                    break; 
+            }
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
