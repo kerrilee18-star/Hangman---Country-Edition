@@ -31,13 +31,21 @@
         }
 
         .header { 
-            display: flex; justify-content: space-between; width: 100%; 
-            height: 6vh; align-items: center;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            width: 100%; 
+            height: 7vh; 
+            align-items: center;
             border-bottom: 2px solid rgba(255,255,255,0.2); 
-            font-size: 0.8rem; flex-shrink: 0;
+            font-size: 0.75rem; flex-shrink: 0;
+            text-align: center;
         }
 
-        .header-item { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+        .header-btn {
+            background: none; border: none; color: white; 
+            font-family: 'Andika'; font-size: 0.75rem; 
+            text-align: left; padding: 0; cursor: pointer;
+        }
         
         #canvas-wrap {
             height: 28vh; width: 100%; display: flex; justify-content: center; align-items: center;
@@ -49,7 +57,7 @@
         }
 
         .word-display { 
-            height: 12vh; width: 100%;
+            height: 10vh; width: 100%;
             font-size: clamp(1.4rem, 6vw, 2.2rem); letter-spacing: 4px; 
             text-transform: uppercase; font-weight: bold; 
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
@@ -96,9 +104,9 @@
 
     <div id="game-container" style="display:none;">
         <div class="header">
-            <button onclick="location.reload()" style="background:none; border:none; color:white; font-family: 'Andika'; font-size: 0.8rem; text-align: left;">MENU<br>תפריט</button>
-            <div class="header-item">ROUND / שלב<br><span id="round-num">1</span>/8</div>
-            <div class="header-item">SCORE / ניקוד<br><span id="score">0</span></div>
+            <button onclick="location.reload()" class="header-btn">MENU / תפריט</button>
+            <div style="font-weight: bold;">ROUND / שלב<br><span id="round-num">1</span>/8</div>
+            <div style="font-weight: bold; text-align: right;">SCORE / ניקוד<br><span id="score">0</span></div>
         </div>
         <div id="canvas-wrap">
             <canvas id="hangman" width="200" height="240"></canvas>
@@ -122,14 +130,14 @@
             1: [{e:"ARGENTINA", h:"ארגנטינה"}, {e:"AUSTRALIA", h:"אוסטרליה"}, {e:"BRAZIL", h:"ברזיל"}, {e:"CANADA", h:"קנדה"}, {e:"COLOMBIA", h:"קולומביה"}, {e:"MEXICO", h:"מקסיקו"}, {e:"PANAMA", h:"פנמה"}, {e:"AMERICA", h:"ארה״ב"}],
             2: [{e:"ITALY", h:"איטליה"}, {e:"BELGIUM", h:"בלגיה"}, {e:"JAPAN", h:"יפן"}, {e:"RUSSIA", h:"רוסיה"}, {e:"UKRAINE", h:"אוקראינה"}, {e:"ETHIOPIA", h:"אתיופיה"}, {e:"ENGLAND", h:"אנגליה"}, {e:"GERMANY", h:"גרמניה"}],
             3: [{e:"SOUTH AFRICA", h:"דרום אפריקה"}, {e:"HUNGARY", h:"הונגריה"}, {e:"POLAND", h:"פולין"}, {e:"NORWAY", h:"נורווגיה"}, {e:"THAILAND", h:"תאילנד"}, {e:"SWEDEN", h:"שבדיה"}, {e:"CHINA", h:"סין"}, {e:"IRELAND", h:"אירלנד"}],
-            4: [{e:"EGYPT", h:"מצרים"}, {e:"GREECE", h:"יוון"}, {e:"CYPRUS", h:"קפריסין"}, {e:"FRANCE", h:"צרפת"}, {e:"INDIA", h:"הודו"}, {e:"SWITZERLAND", h:"שוויץ"}, {e:"NETHERLANDS", h:"הולנד"}, {e:"LITHUANIA", h:"ליטא"}]
+            4: [{e:"EGYPT", h:"מצרים"}, {e:"GREECE", h:"יוון"}, {e:"CYPRUS", h:"קפריסין"}, {e:"FRANCE", h:"צרפת"}, {e:"INDIA", h:"הודו"}, {e:"SWITZERLAND", h:"שוויץ"}, {e:"NETHERLANDS", h:"הולנד"}, {e:"🇱🇹", h:"ליטא"}]
         };
 
         let currentWords = [], currentRound = 0, score = 0, mistakes = 0, guessedLetters = [], currentWord = "", canPlay = true;
 
         function speak(text) {
             window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text.toLowerCase()); // Lowercase avoids "capital" audio
+            const msg = new SpeechSynthesisUtterance(text.toLowerCase());
             msg.lang = 'en-US'; msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
         }
