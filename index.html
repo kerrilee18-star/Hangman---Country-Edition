@@ -12,13 +12,13 @@
         * { 
             box-sizing: border-box; 
             -webkit-tap-highlight-color: transparent; 
-            touch-action: manipulation; /* Prevents double-tap zoom jumping */
+            touch-action: manipulation; 
         }
 
         html, body { 
             height: 100%; width: 100%; margin: 0; padding: 0; 
             overflow: hidden; background-color: #162a22;
-            position: fixed; /* Prevents elastic scrolling/bouncing */
+            position: fixed; 
         }
 
         body {
@@ -35,7 +35,7 @@
         }
 
         .menu-content {
-            display: flex; flex-direction: column; gap: 15px; /* Neater spacing */
+            display: flex; flex-direction: column; gap: 15px;
             width: 100%; max-width: 300px;
         }
 
@@ -69,20 +69,23 @@
 
         .word-display { 
             height: 10vh; width: 100%;
-            font-size: clamp(1.4rem, 6vw, 2.2rem); letter-spacing: 4px; 
+            font-size: clamp(1.2rem, 5vw, 2rem); letter-spacing: 4px; 
             text-transform: uppercase; font-weight: bold; 
             display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
         }
 
         .keyboard { 
-            height: 45vh; display: grid; grid-template-columns: repeat(7, 1fr); 
-            gap: 5px; width: 100%; padding-bottom: env(safe-area-inset-bottom);
+            height: 40vh; 
+            display: grid; grid-template-columns: repeat(7, 1fr); 
+            gap: 4px; width: 100%; 
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            margin-bottom: 5px;
         }
 
         .key { 
             background: rgba(255,255,255,0.1); border: 1.5px solid var(--chalk); 
-            color: var(--chalk); width: 100%; height: 100%; font-size: 1.2rem; 
-            cursor: pointer; border-radius: 8px; text-transform: uppercase;
+            color: var(--chalk); width: 100%; height: 100%; font-size: 1.1rem; 
+            cursor: pointer; border-radius: 6px; text-transform: uppercase;
             font-family: 'Andika', sans-serif; display: flex; align-items: center; justify-content: center;
         }
 
@@ -109,7 +112,8 @@
 <body>
 
     <div id="menu-screen">
-        <h1 style="font-size: 2.2rem; margin-bottom: 5px; color: #f1c40f; text-transform: uppercase;">HANGMAN / איש תלוי</h1>
+        <h1 style="font-size: 2.5rem; margin-bottom: 0; color: #f1c40f; text-transform: uppercase;">HANGMAN</h1>
+        <h2 style="font-size: 2.2rem; margin-top: 0; margin-bottom: 10px; color: #f1c40f;">איש תלוי</h2>
         <h3 style="margin-bottom: 30px; text-transform: uppercase; opacity: 0.8;">COUNTRY EDITION / גרסת המדינות</h3>
         
         <div class="menu-content">
@@ -135,7 +139,10 @@
 
     <div id="ui-overlay">
         <div id="result-content" style="text-align:center; width: 100%;">
-            <h2 id="res-title" style="text-transform: uppercase;"></h2>
+            <div id="res-title-box">
+                <h2 id="res-title-en" style="text-transform: uppercase; margin-bottom: 2px;"></h2>
+                <h2 id="res-title-he" style="margin-top: 0;"></h2>
+            </div>
             <h1 id="res-word" style="color: #f1c40f; text-transform: uppercase; font-size: 3rem; margin: 10px 0;"></h1>
             <h2 id="res-trans" style="color: #ecf0f1; margin: 5px 0;"></h2>
             <button class="audio-icon-btn" onclick="playWordAudio()">🔊</button><br>
@@ -144,7 +151,6 @@
     </div>
 
     <script>
-        // Prevent zoom on gesture
         document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 
         const allLevels = {
@@ -211,7 +217,8 @@
         function showResult(en, he) {
             canPlay = false;
             document.getElementById('ui-overlay').style.display = 'flex';
-            document.getElementById('res-title').innerText = `${en} ${he}`;
+            document.getElementById('res-title-en').innerText = en;
+            document.getElementById('res-title-he').innerText = he;
             document.getElementById('res-word').innerText = currentWords[currentRound].e;
             document.getElementById('res-trans').innerText = currentWords[currentRound].h;
             setTimeout(() => speak(currentWords[currentRound].e), 300);
